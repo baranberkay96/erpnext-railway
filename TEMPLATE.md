@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Name | **ERPNext v16 Business Suite** (version label `v16` = ERPNext major, written as Frappe does: "v16") |
-| Description | Accounting, inventory, sales and CRM in one ERP. Frappe with workers and scheduler. (83 chars) |
+| Description | Accounting, inventory, sales and CRM in one ERP with workers and scheduler. (83 chars) |
 | Category | Other |
 | Tags | erpnext, frappe, erp, accounting, inventory, crm, mariadb |
 | User input at deploy | **None.** Administrator password and all database/Redis passwords are generated. |

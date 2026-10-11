@@ -1,0 +1,288 @@
+{
+ "name": "ERPNext v16 Business Suite",
+ "description": "Accounting, inventory, sales and CRM in one ERP. Frappe with workers and scheduler.",
+ "category": "Other",
+ "tags": [
+  "erpnext",
+  "frappe",
+  "erp",
+  "accounting",
+  "inventory",
+  "crm",
+  "mariadb"
+ ],
+ "upstream": {
+  "repo": "frappe/erpnext",
+  "version": "v16.50.0",
+  "checked": "2026-10-10"
+ },
+ "services": {
+  "ERPNext": {
+   "icon": "https://raw.githubusercontent.com/frappe/erpnext/version-16/erpnext/public/images/erpnext-logo.svg",
+   "source": {
+    "repo": "baranberkay96/erpnext-railway",
+    "rootDirectory": "/services/erpnext"
+   },
+   "startCommand": null,
+   "preDeployCommand": null,
+   "healthcheckPath": "/api/method/ping",
+   "healthcheckTimeout": 1200,
+   "restartPolicyType": "ON_FAILURE",
+   "restartPolicyMaxRetries": 10,
+   "numReplicas": 1,
+   "cronSchedule": null,
+   "publicDomain": true,
+   "targetPort": 8080,
+   "tcpProxy": null,
+   "volume": {
+    "mountPath": "/home/frappe/frappe-bench/sites"
+   },
+   "variables": {
+    "PORT": {
+     "defaultValue": "8080",
+     "description": "Port nginx listens on inside the container (public domain target).",
+     "required": false
+    },
+    "SITE_NAME": {
+     "defaultValue": "erpnext.local",
+     "description": "Internal Frappe site name. Fixed on purpose: every domain pointed at this service serves this site. Must not equal an app name; do not change after first boot.",
+     "required": false
+    },
+    "PUBLIC_URL": {
+     "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
+     "description": "Public URL written to the site's host_name (links in e-mails, prints, background jobs). Update it with a custom domain.",
+     "required": false
+    },
+    "ADMIN_PASSWORD": {
+     "defaultValue": "${{secret(24)}}",
+     "description": "Password of the 'Administrator' user, used once when the site is created. Change it later inside ERPNext.",
+     "required": false
+    },
+    "DB_HOST": {
+     "defaultValue": "${{MariaDB.RAILWAY_PRIVATE_DOMAIN}}",
+     "description": "MariaDB host (private network).",
+     "required": false
+    },
+    "DB_PORT": {
+     "defaultValue": "3306",
+     "description": "MariaDB port.",
+     "required": false
+    },
+    "DB_ROOT_PASSWORD": {
+     "defaultValue": "${{MariaDB.MARIADB_ROOT_PASSWORD}}",
+     "description": "MariaDB root password, used to create the site database and its user.",
+     "required": false
+    },
+    "REDIS_CACHE_URL": {
+     "defaultValue": "${{redis-cache.REDIS_URL}}",
+     "description": "Redis for Frappe's cache.",
+     "required": false
+    },
+    "REDIS_QUEUE_URL": {
+     "defaultValue": "${{redis-queue.REDIS_URL}}",
+     "description": "Redis for background job queues and socket.io pub/sub.",
+     "required": false
+    },
+    "GUNICORN_WORKERS": {
+     "defaultValue": "2",
+     "description": "Gunicorn worker processes (web requests).",
+     "required": false
+    },
+    "GUNICORN_THREADS": {
+     "defaultValue": "4",
+     "description": "Threads per Gunicorn worker.",
+     "required": false
+    },
+    "GUNICORN_TIMEOUT": {
+     "defaultValue": "120",
+     "description": "Seconds before a web request is killed.",
+     "required": false
+    },
+    "WORKER_SHORT_PROCS": {
+     "defaultValue": "1",
+     "description": "Background worker processes for the short/default queues.",
+     "required": false
+    },
+    "WORKER_LONG_PROCS": {
+     "defaultValue": "1",
+     "description": "Background worker processes for the long queue (imports, reposting, heavy reports).",
+     "required": false
+    },
+    "CLIENT_MAX_BODY_SIZE": {
+     "defaultValue": "50m",
+     "description": "Max upload size accepted by nginx.",
+     "required": false
+    },
+    "PROXY_READ_TIMEOUT": {
+     "defaultValue": "120",
+     "description": "nginx timeout (s) for slow reports and print formats.",
+     "required": false
+    },
+    "AUTO_MIGRATE": {
+     "defaultValue": "true",
+     "description": "Run 'bench --site all migrate' automatically once after the image version changes.",
+     "required": false
+    },
+    "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+     "defaultValue": "60",
+     "description": "Give running background jobs time to finish on redeploy.",
+     "required": false
+    }
+   }
+  },
+  "MariaDB": {
+   "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mariadb.svg",
+   "source": {
+    "image": "mariadb:11.8.9"
+   },
+   "startCommand": "/bin/sh -c \"rm -rf /var/lib/mysql/lost+found && exec docker-entrypoint.sh mariadbd --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --skip-character-set-client-handshake '--bind-address=*' --innodb-buffer-pool-size=$MARIADB_INNODB_BUFFER_POOL_SIZE\"",
+   "preDeployCommand": null,
+   "healthcheckPath": null,
+   "healthcheckTimeout": null,
+   "restartPolicyType": "ON_FAILURE",
+   "restartPolicyMaxRetries": 10,
+   "numReplicas": 1,
+   "cronSchedule": null,
+   "publicDomain": false,
+   "targetPort": null,
+   "tcpProxy": null,
+   "volume": {
+    "mountPath": "/var/lib/mysql"
+   },
+   "variables": {
+    "MARIADB_ROOT_PASSWORD": {
+     "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\") }}",
+     "description": "Root password (generated).",
+     "required": false
+    },
+    "MARIADB_AUTO_UPGRADE": {
+     "defaultValue": "1",
+     "description": "Run mariadb-upgrade automatically after an image upgrade.",
+     "required": false
+    },
+    "MARIADB_INNODB_BUFFER_POOL_SIZE": {
+     "defaultValue": "512M",
+     "description": "InnoDB buffer pool (main memory knob). Raise it as the database grows.",
+     "required": false
+    },
+    "MARIADBHOST": {
+     "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}",
+     "description": "Private hostname.",
+     "required": false
+    },
+    "MARIADBPORT": {
+     "defaultValue": "3306",
+     "description": "Port.",
+     "required": false
+    },
+    "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+     "defaultValue": "60",
+     "description": "Allow MariaDB to shut down cleanly.",
+     "required": false
+    }
+   }
+  },
+  "redis-cache": {
+   "icon": "https://cdn.sanity.io/images/sy1jschh/production/0ce0bfdcfbdbf69662b1116671f97c2dd788b655-157x157.svg",
+   "source": {
+    "image": "redis:8.2"
+   },
+   "startCommand": "/bin/sh -c \"exec docker-entrypoint.sh redis-server --requirepass $REDIS_PASSWORD --save '' --appendonly no --maxmemory 256mb --maxmemory-policy allkeys-lru\"",
+   "preDeployCommand": null,
+   "healthcheckPath": null,
+   "healthcheckTimeout": null,
+   "restartPolicyType": "ON_FAILURE",
+   "restartPolicyMaxRetries": 10,
+   "numReplicas": 1,
+   "cronSchedule": null,
+   "publicDomain": false,
+   "targetPort": null,
+   "tcpProxy": null,
+   "volume": null,
+   "variables": {
+    "REDISHOST": {
+     "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}",
+     "description": "Private hostname (cache only: no persistence, LRU eviction at 256 MB).",
+     "required": false
+    },
+    "REDISPORT": {
+     "defaultValue": "6379",
+     "description": "Port that Redis listens on.",
+     "required": false
+    },
+    "REDISUSER": {
+     "defaultValue": "default",
+     "description": "Username for authenticating with Redis.",
+     "required": false
+    },
+    "REDIS_URL": {
+     "defaultValue": "redis://${{ REDISUSER }}:${{ REDIS_PASSWORD }}@${{ REDISHOST }}:${{ REDISPORT }}",
+     "description": "Connection string for connecting to Redis using the private network.",
+     "required": false
+    },
+    "REDISPASSWORD": {
+     "defaultValue": "${{REDIS_PASSWORD}}",
+     "description": "Alias of REDIS_PASSWORD for clients that expect the unseparated name.",
+     "required": false
+    },
+    "REDIS_PASSWORD": {
+     "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\") }}",
+     "description": "Randomly generated password for authenticating with Redis.",
+     "required": false
+    }
+   }
+  },
+  "redis-queue": {
+   "icon": "https://cdn.sanity.io/images/sy1jschh/production/0ce0bfdcfbdbf69662b1116671f97c2dd788b655-157x157.svg",
+   "source": {
+    "image": "redis:8.2"
+   },
+   "startCommand": "/bin/sh -c \"rm -rf $RAILWAY_VOLUME_MOUNT_PATH/lost+found/ && exec docker-entrypoint.sh redis-server --requirepass $REDIS_PASSWORD --save 60 1 --dir $RAILWAY_VOLUME_MOUNT_PATH\"",
+   "preDeployCommand": null,
+   "healthcheckPath": null,
+   "healthcheckTimeout": null,
+   "restartPolicyType": "ON_FAILURE",
+   "restartPolicyMaxRetries": 10,
+   "numReplicas": 1,
+   "cronSchedule": null,
+   "publicDomain": false,
+   "targetPort": null,
+   "tcpProxy": null,
+   "volume": {
+    "mountPath": "/data"
+   },
+   "variables": {
+    "REDISHOST": {
+     "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}",
+     "description": "Private network hostname of the Redis service, only resolvable from services in the same environment.",
+     "required": false
+    },
+    "REDISPORT": {
+     "defaultValue": "6379",
+     "description": "Port that Redis listens on.",
+     "required": false
+    },
+    "REDISUSER": {
+     "defaultValue": "default",
+     "description": "Username for authenticating with Redis.",
+     "required": false
+    },
+    "REDIS_URL": {
+     "defaultValue": "redis://${{ REDISUSER }}:${{ REDIS_PASSWORD }}@${{ REDISHOST }}:${{ REDISPORT }}",
+     "description": "Connection string for connecting to Redis using the private network.",
+     "required": false
+    },
+    "REDISPASSWORD": {
+     "defaultValue": "${{REDIS_PASSWORD}}",
+     "description": "Alias of REDIS_PASSWORD for clients that expect the unseparated name.",
+     "required": false
+    },
+    "REDIS_PASSWORD": {
+     "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\") }}",
+     "description": "Randomly generated password for authenticating with Redis.",
+     "required": false
+    }
+   }
+  }
+ }
+}
